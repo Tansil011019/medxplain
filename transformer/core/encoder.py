@@ -51,13 +51,22 @@ class Encoder(Module):
 
     def forward(self, x, mask):
         # Embedding
+        print("=" * 50)
+        print("Embedding")
         x = self.embedding(x)
+        print(f"Embedded Word: {x}")
+        print(f"Embedded Word Shape: {x.shape}")
         # Positional Encoding
+        print("=" * 50)
+        print("Positional Encoding")
         x = self.pos_enc(x)
-        # Dropout
-        x = self.dropout(x)
+        print(f"Positional Encoding: {x}")
+        print(f"Positional Encoding Shape: {x.shape}")
+        
         # Encoder Layer
         for layer in self.layers:
+            print("=" * 50)
+            print(f"Encoder Layer: {layer}")
             x = layer(x, mask)
 
         return x

@@ -36,7 +36,7 @@ class Decoder(Module):
 
         layer_config = DecoderLayerConfig(
             embed_dim=self.embed_dim,
-            num_head=self.num_heads,
+            num_heads=self.num_heads,
             hidden_dim=self.hidden_dim,
             dropout=self.dropout_p
         )
@@ -56,7 +56,6 @@ class Decoder(Module):
         x = self.embedding(x)
         # Positional Encoding
         x = self.pos_enc(x)
-        x = self.dropout(x)
 
         for layer in self.layers:
             x = layer(x, enc_out, tgt_mask, memory_mask)

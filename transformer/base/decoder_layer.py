@@ -60,6 +60,6 @@ class DecoderLayer(Module):
 
         norm3_x = self.norm3(x)
         ff_out = self.ffn(norm3_x)
-        x = x + self.dropout3(ff_out)
+        x = x + ff_out
 
         return x

@@ -33,7 +33,7 @@ class Transformer(Module):
         self.num_dec_layers = num_dec_layers
         self.max_length = max_length
         self.dropout_p = dropout_p
-        self.src_pad_idx = src_pad_idx,
+        self.src_pad_idx = src_pad_idx
         self.tgt_pad_idx = tgt_pad_idx
 
         enc_config = EncoderConfig(
@@ -48,7 +48,7 @@ class Transformer(Module):
         self.encoder = Encoder(enc_config)
 
         dec_config = DecoderConfig(
-            num_layers=self.num_enc_layers,
+            num_layers=self.num_dec_layers,
             embed_dim=self.embed_dim,
             num_heads = self.num_heads,
             hidden_dim = self.hidden_dim,
@@ -60,21 +60,42 @@ class Transformer(Module):
 
     # the masking is kinda sus
     def generate_mask(self, src, tgt):
+
         src_pad_mask = (src == self.src_pad_idx)
+        src_mha_mask = src_pad_mask.unsqueeze(1).unsqueeze(2) 
 
         _, tgt_len = tgt.shape
         tgt_pad_mask = (tgt == self.tgt_pad_idx)
 
         causal_mask = ~torch.tril(torch.ones((tgt_len, tgt_len), device=tgt.device, dtype=torch.bool))
 
-        return src_pad_mask, tgt_pad_mask, causal_mask
+        decoder_self_attn_mha_mask = torch.logical_or(
+            tgt_pad_mask.unsqueeze(1).unsqueeze(2),
+            causal_mask.unsqueeze(0).unsqueeze(0)  
+        )
 
-
+        return src_mha_mask, decoder_self_attn_mha_mask
 
     def forward(self, src, tgt):
-        src_pad_mask, tgt_pad_mask, causal_mask = self.generate_mask(src, tgt)
+        print("=" * 50)
+        print("Input")
+        print(f"Source: {src}")
+        print(f"Source Shape: {src.shape}")
+        print(f"Target: {tgt}")
+        print(f"Target shape: {tgt.shape}")
+        print("=" * 50)
+        print("Masking")
+        src_mha_mask, decoder_self_attn_mha_mask = self.generate_mask(src, tgt)
+        print(f"Source Padding Mask: {src_mha_mask}")
+        print(f"Source Padding Mask Shape: {src_mha_mask.shape}")
+        print(f"Target Padding Mask: {decoder_self_attn_mha_mask}")
+        print(f"Target Padding Mask Shape: {decoder_self_attn_mha_mask.shape}")
 
-        memory = self.encoder(src, src_pad_mask)
+        print("=" * 50)
+        print(f"Encoder")
+        memory = self.encoder(src, src_mha_mask)
 
-        decoder_output = self.decoder(tgt, memory, tgt_mask=tgt_pad_mask, memory_mask=memory)
+        print("=" * 50)
+        print(f"Decoder")
+        decoder_output = self.decoder(tgt, memory, tgt_mask=decoder_self_attn_mha_mask, memory_mask=src_mha_mask)
         return decoder_output

@@ -48,6 +48,6 @@ class EncoderLayer(Module):
 
         norm2_x = self.norm2(x)
         ff_out = self.ffn(norm2_x)
-        x = x + self.dropout2(ff_out)
+        x = x + ff_out
 
         return x
