@@ -9,4 +9,10 @@ class DecoderLayerConfig:
 
 @dataclass
 class DecoderConfig:
-    pass 
+    num_layers: int
+    embed_dim: int
+    num_heads: int
+    hidden_dim: int
+    vocab_size: int
+    max_seq_length: int
+    dropout: float
