@@ -1,12 +1,15 @@
+import torch
 import torch.nn as nn
 from torch.nn import Module
 
-from transformer.base.multihead_attention import MultiHeadAttention
-from transformer.base.positionwise_ffn import PositionWiseFeedForward
+from transformer.base.positional_encoding import PositionalEncoding
+from transformer.base.encoder_layer import EncoderLayer
 
-from transformer.config.encoder import EncoderConfig
-from transformer.config.multihead_attention import MultiHeadAttentionConfig
-from transformer.config.positionwise_ffn import PositionWiseFeedForwardConfig
+from transformer.config.encoder import (
+    EncoderConfig,
+    EncoderLayerConfig
+)
+from transformer.config.positional_encoding import PositionalEncodingConfig
 
 class Encoder(Module):
     def __init__(
@@ -14,40 +17,47 @@ class Encoder(Module):
         config: EncoderConfig
     ):
         super().__init__()
+        self.num_layers = config.num_layers
         self.embed_dim = config.embed_dim
-        self.num_head = config.num_head
+        self.num_heads = config.num_heads
         self.hidden_dim = config.hidden_dim
+        self.vocab_size = config.vocab_size
+        self.max_seq_length = config.max_seq_length
         self.dropout = config.dropout
 
-        self.multihead_attention_config = MultiHeadAttentionConfig(
+        self.embedding = nn.Embedding(self.vocab_size, self.embed_dim)
+        
+        pos_enc_config = PositionalEncodingConfig(
             embed_dim=self.embed_dim,
-            num_head=self.num_head,
+            max_length=self.max_seq_length,
             dropout=self.dropout
         )
-        self.multi_attn = MultiHeadAttention(self.multihead_attention_config)
+        self.pos_enc = PositionalEncoding(pos_enc_config)
 
-        self.positionwise_ffn_config = PositionWiseFeedForwardConfig(
+        layer_config = EncoderLayerConfig(
             embed_dim=self.embed_dim,
+            num_head=self.num_heads,
             hidden_dim=self.hidden_dim,
             dropout=self.dropout
         )
-        self.ffn = PositionWiseFeedForward(self.positionwise_ffn_config)
+        self.layers = nn.ModuleList(
+            [
+                EncoderLayer(layer_config)
+                for _ in range (self.num_layers)
+            ]
+        )
 
-        self.norm1 = nn.LayerNorm(self.embed_dim)
-        self.norm2 = nn.LayerNorm(self.embed_dim)
-
-        self.dropout1 = nn.Dropout(self.dropout)
-        self.dropout2 = nn.Dropout(self.dropout)
+        self.dropout = nn.Dropout(self.dropout)
 
     def forward(self, x, mask):
-        # Normalized (Pre-LN)
-        x = self.norm1(x)
-        attn_out = self.multi_attn(x, x, x, mask)
-        # Residual Connection
-        x = x + self.dropout1(attn_out)
-
-        x = self.norm2(x)
-        ff_out = self.ffn(x)
-        x = x + self.dropout2(ff_out)
+        # Embedding
+        x = self.embedding(x)
+        # Positional Encoding
+        x = self.pos_enc(x)
+        # Dropout
+        x = self.dropout(x)
+        # Encoder Layer
+        for layer in self.layers:
+            x = layer(x, mask)
 
         return x
