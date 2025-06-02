@@ -29,7 +29,7 @@ class PositionalEncoding(Module):
         self.register_buffer('pos_enc', pos_enc.unsqueeze(0))
 
     def forward(self, x):
-        print(f"Positional: {self.pos_enc[:, :x.size(1), :]}")
+        # print(f"Positional: {self.pos_enc[:, :x.size(1), :]}")
         x = x + self.pos_enc[:, :x.size(1), :]
-        print(f"X Before Dropout: {x}")
+        # print(f"X Before Dropout: {x}")
         return self.dropout(x)

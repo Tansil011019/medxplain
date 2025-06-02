@@ -5,3 +5,5 @@ torch
 einops
 torchvision
 matplotlib
+tqdm
+nltk
