@@ -50,8 +50,10 @@ class ViTEncoder(Module):
             dropout=self.dropout_p
         )
         self.layers = nn.ModuleList(
-            [EncoderLayer(enc_layer_config)]
-            for _ in range (self.num_layers)
+            [
+                EncoderLayer(enc_layer_config)
+                for _ in range (self.num_layers)
+            ]
         )
 
         self.final_norm = nn.LayerNorm(self.embed_dim)

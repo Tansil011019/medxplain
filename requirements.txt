@@ -3,3 +3,5 @@ pandas
 pillow
 torch
 einops
+torchvision
+matplotlib

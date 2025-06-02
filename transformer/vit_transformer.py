@@ -22,7 +22,8 @@ class VisionTransformer(Module):
         dropout_p,
         embed_dim,
         tgt_pad_idx,
-        tgt_vocab_size
+        tgt_vocab_size,
+        max_seq_length,
     ): 
         super().__init__()
         self.height = height
@@ -37,6 +38,7 @@ class VisionTransformer(Module):
         self.embed_dim = embed_dim
         self.tgt_pad_idx = tgt_pad_idx
         self.tgt_vocab_size = tgt_vocab_size
+        self.max_length = max_seq_length
 
         vit_enc_config = ViTEncoderConfig(
             height=self.height,
